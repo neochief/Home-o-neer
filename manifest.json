@@ -1,0 +1,70 @@
+{
+  "manifest_version": 2,
+  "name": "__MSG_extName__",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
+  "version": "1.0.11",
+  "permissions": [
+    "tabs",
+    "storage",
+    "background",
+    "unlimitedStorage"
+  ],
+  "web_accessible_resources": [
+    "resources/*"
+  ],
+  "icons": {
+    "16": "resources/icon-16.png",
+    "32": "resources/icon-32.png",
+    "48": "resources/icon-48.png",
+    "128": "resources/icon-128.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19": "resources/icon-19.png",
+      "38": "resources/icon-38.png"
+    },
+    "default_popup": "html/popup.html"
+  },
+  "background": {
+    "scripts": [
+      "js/lib/jquery.min.js",
+      "js/homemoney.js",
+      "js/background.js"
+    ],
+    "persistent": true
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://myaccount.payoneer.com/MainPage/Transactions.aspx"
+      ],
+      "css": [
+        "css/font-awesome.css",
+        "css/payoneer.css"
+      ],
+      "js": [
+        "js/lib/jquery.min.js",
+        "js/homemoney.js",
+        "js/payoneer-transactions.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://myaccount.payoneer.com/MainPage/PromoPage.aspx"
+      ],
+      "js": [
+        "js/payoneer-home.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://homemoney.ua/api/oauth/success.htm*"
+      ],
+      "js": [
+        "js/lib/jquery.min.js",
+        "js/homemoney-token.js"
+      ]
+    }
+  ]
+}

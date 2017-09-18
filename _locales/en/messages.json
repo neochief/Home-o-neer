@@ -1,0 +1,135 @@
+{
+  "extName": {
+    "message": "Home-o-neer"
+  },
+  "extDescription": {
+    "message": "This extension let you easily export your Payoneer® transactions into Homemoney.ua (personal accounting service)."
+  },
+  "url": {
+    "message": ""
+  },
+  "loading": {
+    "message": "Loading..."
+  },
+  "popup_homemoney_account": {
+    "message": "Link Homemoney account"
+  },
+  "popup_link_homemoney_account": {
+    "message": "Link account"
+  },
+  "popup_relink_homemoney_account": {
+    "message": "Re-link Homemoney account"
+  },
+  "popup_homemoney_settings": {
+    "message": "Homemoney settings"
+  },
+  "popup_homemoney_settings_profile": {
+    "message": "Payoneer card"
+  },
+  "popup_homemoney_settings_profile_default": {
+    "message": "Default"
+  },
+  "popup_homemoney_settings_profile_add": {
+    "message": "Add..."
+  },
+  "popup_homemoney_payoneer_card": {
+    "message": "Card's 4 last digits"
+  },
+  "popup_error_card_digits": {
+    "message": "These are not 4 digits."
+  },
+  "popup_homemoney_settings_profile_remove": {
+    "message": "forget this card"
+  },
+  "popup_homemoney_payoneer_account": {
+    "message": "Payoneer account"
+  },
+  "popup_homemoney_withdraw_account": {
+    "message": "Default account for Payoneer ATM withdrawal transactions"
+  },
+  "popup_homemoney_payoneer_fees_category": {
+    "message": "Put all payoneer fees into this category"
+  },
+  "popup_date_format": {
+    "message": "YYYY-MM-DD"
+  },
+  "popup_homemoney_integration_start_date": {
+    "message": "Mark exported all Payoneer transactions before"
+  },
+  "popup_homemoney_settings_save": {
+    "message": "Save"
+  },
+  "popup_menu_payoneer_account": {
+    "message": "Import transactions"
+  },
+  "popup_menu_settings": {
+    "message": "Settings"
+  },
+  "popup_menu_help": {
+    "message": "Help"
+  },
+  "popup_menu_log_in": {
+    "message": "Log in"
+  },
+  "popup_menu_log_out": {
+    "message": "Log out"
+  },
+  "popup_error_payoneer_account": {
+    "message": "Can't find a bank account with USD currency among your accounts. Make sure you have a <a href=\"https://homemoney.ua/app/currencymanager.aspx\" target=\"_blank\">currency with shorthand $$ or USD</a> attached to one of the <a href=\"https://homemoney.ua/app/accounts.aspx\" target=\"_blank\"> accounts of \"Bank Accounts\"</a>."
+  },
+  "popup_error_cash_account": {
+    "message": "Can't find any cash accounts. Make sure you have a <a href=\"https://homemoney.ua/app/accounts.aspx\" target=\"_blank\">cash account</a> in your Homemoney."
+  },
+  "popup_error_token": {
+    "message": "Can't fetch a proper API token from homemoney."
+  },
+  "popup_error_date_format": {
+    "message": "Date is not valid. Please, enter the date in YYYY-MM-DD format."
+  },
+  "popup_error_global": {
+    "message": "Error: can't connect to the server."
+  },
+  "payoneer_category": {
+    "message": "Category"
+  },
+  "payoneer_plan": {
+    "message": "Plan"
+  },
+  "payoneer_export": {
+    "message": "Export"
+  },
+  "payoneer_save": {
+    "message": "Save"
+  },
+  "payoneer_select_category": {
+    "message": "Select category first"
+  },
+  "payoneer_select_account": {
+    "message": "Select cash account and currency first"
+  },
+  "payoneer_retry": {
+    "message": "Retry"
+  },
+  "payoneer_done": {
+    "message": "Done"
+  },
+  "payoneer_error_no_cash_account": {
+    "message": "<b>Note:</b> you have withdrawn money in $currency$, but there are no cash accounts with USD or $currency$ balance in your Homemoney. Please, <a href=\"https://homemoney.ua/app/currencymanager.aspx\" target=\"_blank\">fix it in your Homemoney account</a> and reload this page.",
+    "placeholders": {
+      "currency": {
+        "content": "$1"
+      }
+    }
+  },
+  "payoneer_error_no_cash_account2": {
+    "message": "<b>Note:</b> you have withdrawn money in $currency$, but selected account does not have a balance in such currency. You can either export it in USD, or <a href=\"https://homemoney.ua/app/currencymanager.aspx\" target=\"_blank\">add it to Homemoney account</a> and reload this page.",
+    "placeholders": {
+      "currency": {
+        "content": "$1"
+      }
+    }
+  },
+  "payoneer_error_saving_transaction": {
+    "message": "Sorry, can't save transaction at this time, please retry in a moment."
+  }
+}

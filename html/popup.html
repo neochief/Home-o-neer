@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+    <title>Payoneer login</title>
+    <link type="text/css"  rel="stylesheet" href="../css/font-awesome.css">
+    <link type="text/css"  rel="stylesheet" href="../css/popup.css">
+    <script src="../js/lib/jquery.min.js"></script>
+    <script src="../js/homemoney.js"></script>
+    <script src="../js/popup.js"></script>
+</head>
+<body>
+<div class="pane loading">
+    <h3><i class="fa fa-cog fa-spin"></i> <span>Loading...</span></h3>
+</div>
+<div class="pane error-global hidden">
+    <h3><i class="fa fa-exclamation-triangle"></i> <span>Error: can't connect to the server.</span></h3>
+</div>
+<div class="pane homemoney-link-form hidden">
+    <h3>Homemoney account</h3>
+    <button class="btn homemoney-link">Link account</button>
+</div>
+<form class="pane homemoney-settings hidden">
+    <h3><div class="title">Homemoney settings</div> <div class="profile"><label for="profile">Profile</label> <select id="profile"><option value="default">Default</option><option value="add">Add...</option></select></div></h3>
+    <div class="form-field homemoney-payoneer-card"><label for="homemoney-payoneer-card">Card's last 4 digits</label> <input id="homemoney-payoneer-card" type="number" maxlength="4" max="9999" placeholder="XXXX"/></div>
+    <div class="form-field homemoney-payoneer-account"><label for="homemoney-payoneer-account">Payoneer account</label> <select id="homemoney-payoneer-account" required></select></div>
+    <div class="form-field homemoney-withdraw-account"><label for="homemoney-withdraw-account">Default account for Payoneer ATM withdrawal transactions</label> <select id="homemoney-withdraw-account" required></select></div>
+    <div class="form-field homemoney-payoneer-fees-category"><label for="homemoney-payoneer-fees-category">Put all payoneer fees into this category</label> <select id="homemoney-payoneer-fees-category" required></select></div>
+    <div class="form-field homemoney-integration-start-date"><label for="homemoney-integration-start-date">Mark exported all Payoneer transactions before</label> <input id="homemoney-integration-start-date" type="text" placeholder="YYYY-MM-DD"/></div>
+    <button class="btn homemoney-settings-save">Save</button>
+    <div class="btn-link profile-remove"><a href="#" id="profile-remove">remove profile</a></div>
+</form>
+<div class="pane actions menu hidden">
+    <ul>
+        <li class="payoneer-account"><a href="#" tabindex="-1"><i class="fa fa-external-link fa-fw"></i>&nbsp;<span>Import!</span></a></li>
+        <li class="settings"><a href="#" tabindex="-1"><i class="fa fa-cog fa-fw"></i>&nbsp;<span>Settings</span></a></li>
+        <li class="log-out"><a href="#" tabindex="-1"><i class="fa fa-sign-out fa-fw"></i>&nbsp;<span>Log out</span></a></li>
+    </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,135 @@
+{
+  "extName": {
+    "message": "Home-o-neer"
+  },
+  "extDescription": {
+    "message": "Это расширение предоставляет интеграцию платежной системы Payoneer® и домашней бухгалтерии Homemoney.ua."
+  },
+  "url": {
+    "message": "ru"
+  },
+  "loading": {
+    "message": "Загружаю..."
+  },
+  "popup_homemoney_account": {
+    "message": "Привязка аккаунта Homemoney"
+  },
+  "popup_link_homemoney_account": {
+    "message": "Привязать аккаунт"
+  },
+  "popup_relink_homemoney_account": {
+    "message": "Пере-привязать аккаунт Homemoney"
+  },
+  "popup_homemoney_settings": {
+    "message": "Настройки Homemoney"
+  },
+  "popup_homemoney_settings_profile": {
+    "message": "Карточка Payoneer"
+  },
+  "popup_homemoney_settings_profile_default": {
+    "message": "По-умолчанию"
+  },
+  "popup_homemoney_settings_profile_add": {
+    "message": "Добавить..."
+  },
+  "popup_homemoney_payoneer_card": {
+    "message": "Последние 4 цифры номера карты"
+  },
+  "popup_error_card_digits": {
+    "message": "Это не похоже на 4 цифры."
+  },
+  "popup_homemoney_settings_profile_remove": {
+    "message": "удалить эту карточку"
+  },
+  "popup_homemoney_payoneer_account": {
+    "message": "Аккаунт Payoneer"
+  },
+  "popup_homemoney_withdraw_account": {
+    "message": "Аккаунт, в который по-умолчанию снимаем наличные в банкомате"
+  },
+  "popup_homemoney_payoneer_fees_category": {
+    "message": "Категория, в которую складываем все проценты и тарифы Payoneer"
+  },
+  "popup_date_format": {
+    "message": "ГГГГ-ММ-ДД"
+  },
+  "popup_homemoney_integration_start_date": {
+    "message": "Отметить все транзакции Payoneer раньше этой даты как импортированные"
+  },
+  "popup_homemoney_settings_save": {
+    "message": "Сохранить"
+  },
+  "popup_menu_payoneer_account": {
+    "message": "Импорт из Payoneer"
+  },
+  "popup_menu_settings": {
+    "message": "Настройки"
+  },
+  "popup_menu_help": {
+    "message": "Помощь"
+  },
+  "popup_menu_log_in": {
+    "message": "Зайти"
+  },
+  "popup_menu_log_out": {
+    "message": "Забыть меня"
+  },
+  "popup_error_payoneer_account": {
+    "message": "Не могу определить счет Payoneer среди ваших счетов (любой банковский счет в USD). Убедитесь, что у вас в аккаунте <a href=\"https://homemoney.ua/app/currencymanager.aspx\" target=\"_blank\">есть валюта с символом $$ или USD</a>, а также, что эта валюта привязана хотя бы к одному <a href=\"https://homemoney.ua/app/accounts.aspx\" target=\"_blank\">счету в группе «Счета в банках»</a>."
+  },
+  "popup_error_cash_account": {
+    "message": "Не могу определить наличные счета. Убедитесь, что у вас в аккаунте есть <a href=\"https://homemoney.ua/app/accounts.aspx\" target=\"_blank\">счет в группе «Наличные»</a>."
+  },
+  "popup_error_token": {
+    "message": "Не могу получить токен интеграции Homemoney."
+  },
+  "popup_error_date_format": {
+    "message": "Дата указана в неправильном формате. Пожалуйста, введите дату в формате ГГГГ-ММ-ДД."
+  },
+  "popup_error_global": {
+    "message": "Ошибка: не могу подключиться к серверу."
+  },
+  "payoneer_category": {
+    "message": "Категория"
+  },
+  "payoneer_plan": {
+    "message": "План"
+  },
+  "payoneer_export": {
+    "message": "Экспорт"
+  },
+  "payoneer_save": {
+    "message": "Сохранить"
+  },
+  "payoneer_select_category": {
+    "message": "Сначала выберите категорию"
+  },
+  "payoneer_select_account": {
+    "message": "Сначала выберите наличный счет и валюту"
+  },
+  "payoneer_retry": {
+    "message": "Повторить"
+  },
+  "payoneer_done": {
+    "message": "Готово"
+  },
+  "payoneer_error_no_cash_account": {
+    "message": "<b>Внимание:</b> вы сняли деньги в валюте $currency$, но в Homemoney нет наличного счета в валюте USD или $currency$. Пожалуйста, <a href=\"https://homemoney.ua/app/currencymanager.aspx\" target=\"_blank\">добавьте одну из валют в Homemoney</a> и перезагрузите эту страницу.",
+    "placeholders": {
+      "currency": {
+        "content": "$1"
+      }
+    }
+  },
+  "payoneer_error_no_cash_account2": {
+    "message": "<b>Внимание:</b> вы сняли деньги в валюте $currency$, но выбранный счет не имеет баланса в этой валюте. Вы можете либо экспортировать транзакцию в USD, либо <a href=\"https://homemoney.ua/app/currencymanager.aspx\" target=\"_blank\">добавить новую валюту в Homemoney</a>, перезагрузив страницу после этого.",
+    "placeholders": {
+      "currency": {
+        "content": "$1"
+      }
+    }
+  },
+  "payoneer_error_saving_transaction": {
+    "message": "Извините, не могу добавить транзакцию в данный момент. Попробуйте через минуту."
+  }
+}

@@ -1,0 +1,217 @@
+.table-header {
+    width: 150px;
+    color: rgb(255, 255, 255);
+    background-color: rgb(160, 188, 0);
+}
+
+.homemoney-hidden {
+    display: none;
+}
+
+#WelcomeArea {
+    width: 960px !important;
+}
+
+.MainContainer {
+    width: 95% !important;
+    min-width: 996px !important;
+}
+
+#LeftContent {
+    width: calc(100% - 255px) !important;
+}
+
+td.TransactionDescriptionColumn {
+    display: table-cell;
+}
+
+.box-wrapper-bottom, .box-wrapper-top {
+    text-align: left;
+}
+
+td.accounts, td.categories, td.export {
+    cursor: default;
+}
+
+.debit select, .credit select, .transfer select {
+    font-size: 16px;
+    padding: 3px 0;
+}
+
+.homemoney-category {
+    width: 100%;
+}
+
+.homemoney-account {
+    width: 70%;
+}
+
+.homemoney-account-currency-note {
+    font-size: 12px;
+}
+
+.debit .first, .credit .first, .transfer .first {
+    padding-left: 24px;
+}
+
+.debit .first {
+    background: transparent url('chrome-extension://__MSG_@@extension_id__/resources/debit.png') no-repeat 4px 50%;
+}
+
+.credit .first {
+    background: transparent url('chrome-extension://__MSG_@@extension_id__/resources/credit.png') no-repeat 4px 50%;
+}
+
+.transfer .first {
+    background: transparent url('chrome-extension://__MSG_@@extension_id__/resources/transfer.png') no-repeat 4px 50%;
+}
+
+.homemoney-export {
+    border: none;
+    border-radius: 3px;
+    padding: 6px 10px 6px;
+    cursor: pointer;
+    background: #fe5300;
+    color: #fff;
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .15);
+    width: 100%;
+    transition: all 0.2s;
+    outline: none;
+    position: relative;
+}
+
+.homemoney-export:hover {
+    background: #fe7300;
+}
+
+.homemoney-export:active {
+    background: #ce3300;
+    box-shadow: inset 0 3px 0 rgba(0, 0, 0, .15);
+}
+
+.homemoney-export:disabled {
+    background-color: #ccc;
+    cursor: default;
+    box-shadow: inset 0 0 0 rgba(0, 0, 0, .15);
+}
+
+.homemoney-export.success {
+    background-color: #8ED676;
+}
+
+.homemoney-export.changed, .homemoney-export.error {
+    background-color: #DBC64D;
+}
+
+.homemoney-export.progress {
+    background: #fe5300;
+    background-image: linear-gradient(
+            -45deg,
+            rgba(255, 255, 255, .2) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, .2) 50%,
+            rgba(255, 255, 255, .2) 75%,
+            transparent 75%,
+            transparent
+    );
+    z-index: 1;
+    background-size: 30px 30px;
+    animation: move 1s linear infinite;
+    box-shadow: inset 0 0 0 rgba(0, 0, 0, .15);
+}
+
+.homemoney-export .title {
+    display: none;
+    position: absolute;
+    box-sizing: border-box;
+    width: auto;
+    max-width: 200px;
+    height: 23px;
+    color: white;
+    border-radius: 5px;
+    box-shadow: inset 0 0 0 rgba(0, 0, 0, .15);
+    margin: 0;
+    left: calc(100% + 5px);
+    top: 0;
+    white-space: pre;
+    font-size: 12px;
+    padding: 3px 7px;
+}
+
+.homemoney-export .title:after {
+    content: " ";
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid #fe5300;
+    position: absolute;
+    left: -6px;
+    top: 5px;
+}
+
+.homemoney-export:hover .title {
+    background-color: #fe7300;
+}
+
+.homemoney-export:active .title {
+    background-color: #ce3300;
+}
+
+.homemoney-export:disabled .title {
+    background-color: #ccc;
+}
+
+.homemoney-export.success .title {
+    background-color: #8ED676;
+}
+
+.homemoney-export.changed .title, .homemoney-export.error .title {
+    background-color: #DBC64D;
+}
+
+.homemoney-export.progress .title {
+    background-color: #fe5300;
+}
+
+.homemoney-export:hover .title:after {
+    border-right-color: #fe7300;
+}
+
+.homemoney-export:active .title:after {
+    border-right-color: #ce3300;
+}
+
+.homemoney-export:disabled .title:after {
+    border-right-color: #ccc;
+}
+
+.homemoney-export.success .title:after {
+    border-right-color: #8ED676;
+}
+
+.homemoney-export.changed .title:after, .homemoney-export.error .title:after {
+    border-right-color: #DBC64D;
+}
+
+.homemoney-export.progress .title:after {
+    border-right-color: #fe5300;
+}
+
+.homemoney-export:hover .title {
+    display: block;
+}
+
+.btn-little {
+    margin-left: 5px;
+}
+
+@keyframes move {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 30px 30px;
+    }
+}
