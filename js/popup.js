@@ -147,7 +147,7 @@ $(function () {
 
                 all = getWithdrawalAccounts(data);
                 if (!all.length) {
-                    $('.homemoney-payoneer-account').append('<div class="error">' + chrome.i18n.getMessage("popup_error_cash_account") + '</div>');
+                    $('.homemoney-withdraw-account').append('<div class="error">' + chrome.i18n.getMessage("popup_error_cash_account") + '</div>');
                 }
                 else {
                     $('#homemoney-withdraw-account').empty();

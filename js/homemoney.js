@@ -224,6 +224,8 @@ function getPayoneerOrderedAccounts(data) {
 }
 
 function getWithdrawalAccounts(data, top_of_the_list, allowed_currencies, type) {
+    type = type == undefined ? 1 : type;
+
     top_of_the_list = top_of_the_list ? GroupIterator(data, null, function (account) {
         return account.id == top_of_the_list
     }) : [];
