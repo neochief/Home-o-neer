@@ -314,7 +314,7 @@ $(function () {
 
             $('.actions .payoneer-account').click(function () {
                 localStorage.setItem('payoneer_do_go_to_transactions', new Date().getTime());
-                chrome.tabs.create({url: "https://myaccount.payoneer.com/MainPage/Transactions.aspx"});
+                chrome.tabs.create({url: "https://myaccount.payoneer.com/MainPage/Widget.aspx?w=Activity#/activity/transactions"});
             });
 
             $('.actions .settings').click(function () {

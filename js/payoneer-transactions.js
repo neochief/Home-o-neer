@@ -154,7 +154,10 @@ var app = {
         this.timer = setInterval(probe, 100);
     },
     doRenderBody: function () {
-        $('#gvTranscations tbody tr:not(.homemoney-processed)').each(this.renderRow.bind(this));
+        $('.transactions__body__tables__table-transactions tr:not(.homemoney-processed)').each(this.renderRow.bind(this));
+
+        // https://activityfacade.payoneer.com/api/activity/getMainTransactions?locale=en&numberOfResults=200&returnFilters=true&checkEmpty=true&fromDate=2018-01-03&toDate=2018-04-03
+        // https://activityfacade.payoneer.com/api/activity/getItemDetails?activityItemId=1,4,202039043&activityType=2
     },
     // 01/15/2016 09:56 -> 2016-01-15 09:56:00
     amDateToISO: function (amDate) {
@@ -718,7 +721,10 @@ var app = {
     },
     destroy: function () {
         // Simplest possible way to die.
+        debugger;
         location.reload();
     }
 };
+debugger;
+
 app.start();

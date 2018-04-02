@@ -37,7 +37,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://myaccount.payoneer.com/MainPage/Transactions.aspx"
+        "https://myaccount.payoneer.com/MainPage/Widget.aspx?w=Activity#/activity/transactions"
       ],
       "css": [
         "css/font-awesome.css",

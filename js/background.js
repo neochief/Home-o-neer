@@ -116,11 +116,9 @@ var app = {
         var payoneer_do_go_to_transactions = localStorage.getItem('payoneer_do_go_to_transactions');
         if (payoneer_do_go_to_transactions) {
             if ((parseInt(payoneer_do_go_to_transactions) + 180) < new Date().getTime()) {
-                sendResponse();
+                sendResponse(true);
             }
-            else {
-                localStorage.removeItem('payoneer_do_go_to_transactions');
-            }
+            localStorage.removeItem('payoneer_do_go_to_transactions');
         }
     },
     ArrivedToTransactions: function(request, sender, sendResponse){
