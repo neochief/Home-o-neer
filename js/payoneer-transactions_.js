@@ -15,71 +15,6 @@ var messenger = {
     }
 };
 
-// 3 Jan 2018 -> 2016-01-15 09:56:00
-function amDateToISO2(amDate) {
-    var date = amDate.split(" ");
-    date = pad(date[2], 4) + "-" + pad(date[2], 2) + "-" + pad(date[0], 2);
-    var time = date.length > 3 ? temp[3] : '00:00:00';
-    time = time.split(':');
-    if (time.length == 2) {
-        time.push('00');
-    }
-    for (var i = 0; i < time.length; i++) {
-        time[i] = pad(time[i], 2);
-    }
-    time = time.join(':');
-    return date + ' ' + time;
-}
-
-// 01/15/2016 09:56 -> 2016-01-15 09:56:00
-function amDateToISO(amDate) {
-    var temp = amDate.split(" ");
-    var date = temp[0].split("/");
-    date = pad(date[2], 4) + "-" + pad(date[0], 2) + "-" + pad(date[1], 2);
-    var time = temp.length > 1 ? temp[1] : '00:00:00';
-    time = time.split(':');
-    if (time.length == 2) {
-        time.push('00');
-    }
-    for (var i = 0; i < time.length; i++) {
-        time[i] = pad(time[i], 2);
-    }
-    time = time.join(':');
-    return date + ' ' + time;
-}
-
-// 2016.01.15 09:56 -> 2016-01-15 09:56:00
-function rusDateToISO(rusDate) {
-    var temp = rusDate.split(" ");
-    var date = temp[0].split(".");
-    date = pad(date[2], 4) + "-" + pad(date[1], 2) + "-" + pad(date[0], 2);
-    var time = temp.length > 1 ? temp[1] : '00:00:00';
-    time = time.split(':');
-    if (time.length == 2) {
-        time.push('00');
-    }
-    for (var i = 0; i < time.length; i++) {
-        time[i] = pad(time[i], 2);
-    }
-    time = time.join(':');
-    return date + ' ' + time;
-}
-
-function formatDate(date) {
-    var year = date.getFullYear();
-    var month = date.getMonth() + 1;
-    var day = date.getDate();
-
-    if (day < 10) {
-        day = '0' + day;
-    }
-    if (month < 10) {
-        month = '0' + month;
-    }
-
-    return year + '-' + month + '-' + day;
-}
-
 var app = {
     fee_suffix: 'FEE',
     homemoney_token: null,
@@ -90,10 +25,8 @@ var app = {
     transactions: null,
     account_select: [],
     account_select_count: [],
-    ready: false,
-    lastPayoneerData: null,
     start: function () {
-        if (!document.getElementsByClassName('myaccount').length) {
+        if (!document.getElementById('gvTranscations')) {
             return;
         }
         messenger.send('ArrivedToTransactions');
@@ -112,29 +45,6 @@ var app = {
                 this.destroy();
             }
         }.bind(this), true);
-
-
-        var s = document.createElement('script');
-        s.src = chrome.extension.getURL('js/tr.js');
-        (document.head || document.documentElement).appendChild(s);
-        s.onload = function () {
-            s.remove();
-        };
-
-        document.addEventListener('Home-o-neer:getMainTransactions', function (e) {
-            this.lastPayoneerData = {};
-            for (var i = 0; i < e.detail.Transactions.length; i++) {
-                this.lastPayoneerData[e.detail.Transactions[i].ActivityId] = e.detail.Transactions[i];
-            }
-            this.initIfReady();
-        }.bind(this));
-
-        document.addEventListener('Home-o-neer:getMoreTransactions', function (e) {
-            for (var i = 0; i < e.detail.Transactions.length; i++) {
-                this.lastPayoneerData[e.detail.Transactions[i].ActivityId] = e.detail.Transactions[i];
-            }
-            this.initIfReady();
-        }.bind(this));
     },
     getTokenOrWait: function (success, failure, just_checking) {
         messenger.listen('DeliverHomemoneyToken', function (request) {
@@ -174,20 +84,7 @@ var app = {
         this.loadTransactions(this.initIfReady.bind(this));
     },
     loadTransactions: function (callback) {
-        var date = $('.date-picker__body__dropdown .value-wrapper').text();
-        if (date) {
-            var date = $('.date-picker__body__dropdown .value-wrapper').text().split(' - ');
-            var from = amDateToISO2(date[0]);
-            var to = amDateToISO2(date[1] + ' 23:59:59');
-        }
-        else {
-            var today = new Date();
-            today.setDate(today.getDate() - 90);
-            from = moment(today).format('YYYY-MM-DD') + ' 00:00:00';
-            to = moment().format('YYYY-MM-DD') + ' 23:59:59';
-        }
-
-        getTransactions(this.homemoney_token, from, to, function (transactions) {
+        getTransactions(this.homemoney_token, this.amDateToISO($('.dateRangeFrom').val()), this.amDateToISO($('.dateRangeTo').val() + ' 23:59:59'), function (transactions) {
             console.log('s6: transactions success');
 
             var account = this.getSettings('payoneer_account');
@@ -205,15 +102,6 @@ var app = {
             callback();
         }.bind(this));
     },
-    getSettings: function (property) {
-        var profile = $('option[value=' + $('#ddlAccounts').val() + ']').first().text().replace('Prepaid Card - XXXX-', '');
-        if (this.settings[profile] != undefined && this.settings[profile][property] != undefined) {
-            return this.settings[profile][property];
-        }
-        else {
-            return this.settings.default[property];
-        }
-    },
     initIfReady: function () {
         console.log('| attempt to init');
         console.log("- categories:" + (this.categories ? "ok" : "null"));
@@ -226,109 +114,168 @@ var app = {
         }
     },
     init: function () {
-        if (!this.lastPayoneerData) {
-            return;
-        }
         console.log('init!');
-
         this.renderHomemoneyHead();
-        $('.transactions__body__tables__table-transactions tbody tr:not(.homemoney-processed)').each(function (index, row) {
-            this.renderRow(row);
-        }.bind(this));
+        this.renderHomemoneyBody();
+        this.handlePrevNextButtons();
+        this.addMiscControls();
     },
-    renderHomemoneyHead: function () {
-        if ($('.transactions__body__tables__table-transactions thead.homemoney-processed').length) return;
-
-        $('.transactions__body__tables__table-transactions thead tr:first-child th:first-child').width(100);
-        $('.transactions__body__tables__table-transactions thead tr:first-child').append('<th class="table__table-th categories">' + chrome.i18n.getMessage("payoneer_category") + '</th><th class="table__table-th plan">' + chrome.i18n.getMessage("payoneer_plan") + '</th><th class="table__table-th action">Action</th>');
-        $('.transactions__body__tables__table-transactions thead').addClass('homemoney-processed');
-    },
-    renderRow: function (row) {
-        row.className += ' homemoney-processed';
-
-        var date = moment($('.column-date', row).text()).format('YYYY-MM-DD');
-        var comment = $('.activity-description strong', row).text();
-        var amount = $('.column-amount strong', row).text().replace(/ USD$/, '');
-
-        var ind;
-        var found = false;
-        for (ind in this.lastPayoneerData) {
-            if (!this.lastPayoneerData.hasOwnProperty(ind)) {
-                return;
-            }
-            var tr = this.lastPayoneerData[ind];
-            if (tr.homemoney === undefined &&
-                date === moment(tr.Date).format('YYYY-MM-DD') &&
-                comment === tr.Description.Value &&
-                amount === tr.Amount.ResParams.Amount) {
-
-                tr.homemoney = true;
-                found = true;
-
-                break;
-            }
-        }
-
-        if (!found) {
-            return;
-        }
-
-        var data = {};
-        data.id = tr.ActivityId;
-        data.date = moment(tr.Date).format('YYYY-MM-DD hh:mm:ss');
-        data.description = tr.Description.Value;
-        data.total = parseFloat(amount.replace(/^\-/, ''));
-
-        data.typeId = tr.TypeId;
-        switch (tr.TypeId) {
-            case 2:
-                data.type = 'debit';
-                break;
-            case 3:
-                data.type = 'transfer';
-                data.transfer_type = 'cash';
-                break;
-            case 6:
-                data.type = 'credit';
-                break;
-        }
-
-        if (localStorage.getItem('ta' + data.id)) {
-            data.transaction_amount = parseFloat(localStorage['ta' + data.id]);
-            data.transaction_currency = localStorage['tc' + data.id];
-            data.transaction_fee = parseFloat(localStorage['tf' + data.id]);
-            this.renderRowControls(row, data);
+    getSettings: function (property) {
+        var profile = $('option[value=' + $('#ctl00_ddlAccounts').val() + ']').first().text().replace('Prepaid Card - XXXX-', '');
+        if (this.settings[profile] != undefined && this.settings[profile][property] != undefined) {
+            return this.settings[profile][property];
         }
         else {
-            this.loadPayoneerTransactionDetails(data, function (data, upd) {
-                if (data.type === 'transfer') {
-                    if (upd.Details[1].Content[5].Values[0].ResKey !== 'SidebarTransactionAmountTitle.Text') {
-                        throw "Something is wrong with details data structure, please check (SidebarTransactionAmountTitle.Text).";
-                    }
-                    data.transaction_amount = parseFloat(upd.Details[1].Content[5].Values[0].ResParams.Amount);
-                    data.transaction_currency = upd.Details[1].Content[5].Values[0].ResParams.Currency;
-                    data.transaction_fee = parseFloat(upd.Details[0].Content[1].Values[0].ResParams.Amount);
+            return this.settings.default[property];
+        }
+    },
+    renderHomemoneyHead: function () {
+        if ($('#gvTranscations thead.homemoney-processed').length) return;
+        $('#gvTranscations thead tr:first-child th:first-child').width(100);
+        $('#gvTranscations thead tr:first-child th').attr('rowspan', 2);
+        $('#gvTranscations thead tr:first-child').append('<th colspan="3" class="table-header">Homemoney</th>');
+        $('#gvTranscations thead tr:first-child th:last-child').width('30%');
+        $('#gvTranscations thead').append('<tr class="table-header"><th>' + chrome.i18n.getMessage("payoneer_category") + '</th><th>' + chrome.i18n.getMessage("payoneer_plan") + '</th><th></th></tr>');
+        $('#gvTranscations thead').addClass('homemoney-processed');
+    },
+    renderHomemoneyBody: function () {
+        if (this.timer != undefined) {
+            clearInterval(this.timer);
+        }
+        var probe = function () {
+            if ($('.loadingDivPlugin').length) {
+                return;
+            }
+            else {
+                clearInterval(this.timer);
+                this.doRenderBody();
+            }
+        }.bind(this);
+        this.timer = setInterval(probe, 100);
+    },
+    doRenderBody: function () {
+        $('.transactions__body__tables__table-transactions tr:not(.homemoney-processed)').each(this.renderRow.bind(this));
+
+        // https://activityfacade.payoneer.com/api/activity/getMainTransactions?locale=en&numberOfResults=200&returnFilters=true&checkEmpty=true&fromDate=2018-01-03&toDate=2018-04-03
+        // https://activityfacade.payoneer.com/api/activity/getItemDetails?activityItemId=1,4,202039043&activityType=2
+    },
+    // 01/15/2016 09:56 -> 2016-01-15 09:56:00
+    amDateToISO: function (amDate) {
+        var temp = amDate.split(" ");
+        var date = temp[0].split("/");
+        date = pad(date[2], 4) + "-" + pad(date[0], 2) + "-" + pad(date[1], 2);
+        var time = temp.length > 1 ? temp[1] : '00:00:00';
+        time = time.split(':');
+        if (time.length == 2) {
+            time.push('00');
+        }
+        for (var i = 0; i < time.length; i++) {
+            time[i] = pad(time[i], 2);
+        }
+        time = time.join(':');
+        return date + ' ' + time;
+    },
+    // 2016.01.15 09:56 -> 2016-01-15 09:56:00
+    rusDateToISO: function (rusDate) {
+        var temp = rusDate.split(" ");
+        var date = temp[0].split(".");
+        date = pad(date[2], 4) + "-" + pad(date[1], 2) + "-" + pad(date[0], 2);
+        var time = temp.length > 1 ? temp[1] : '00:00:00';
+        time = time.split(':');
+        if (time.length == 2) {
+            time.push('00');
+        }
+        for (var i = 0; i < time.length; i++) {
+            time[i] = pad(time[i], 2);
+        }
+        time = time.join(':');
+        return date + ' ' + time;
+    },
+    renderRow: function (index, row) {
+        row.className += ' homemoney-processed';
+        var date = this.amDateToISO($('td:nth-child(1)', row).text().trim());
+
+        var data = {
+            id: $(row).attr('rowkeyvalue'),
+            date: date,
+            description: $('td:nth-child(2)', row).text().trim(),
+            debit: $('td:nth-child(3)', row).text().trim().replace(/[$€]/g, ''),
+            credit: $('td:nth-child(4)', row).text().trim().replace(/[$€]/g, ''),
+        };
+        if (data.description === 'Load to card') {
+            row.className += ' homemoney-hidden';
+        }
+        data.debit = data.debit ? parseFloat(data.debit) : 0;
+        data.credit = data.credit ? parseFloat(data.credit) : 0;
+        data.total = data.debit == '' ? data.credit : data.debit;
+        data.transaction_type = localStorage['t' + data.id];
+        data.transaction_amount = parseFloat(localStorage['ta' + data.id]);
+        data.transaction_currency = localStorage['tc' + data.id];
+        data.transaction_fee = parseFloat(localStorage['tf' + data.id]);
+        if (data.transaction_type === 'ATM Withdrawal') {
+            data.type = 'transfer';
+            data.transfer_type = 'cash';
+        }
+        else if (/Withdrawal to/.test(data.transaction_type)) {
+            data.type = 'transfer';
+            data.transfer_type = 'bank';
+            data.transfer_account = data.transaction_type.replace('Withdrawal to ', '');
+            data.transaction_currency = 'all';
+        }
+        else {
+            data.type = data.debit == '' ? 'credit' : 'debit';
+        }
+        $(row).data('data', data);
+
+        if (!data.transaction_type) {
+            this.loadPayoneerTransactionDetails($('#qaz').val(), data, index, function ($page, data) {
+                data.transaction_type = $('#lblTransactionDescription', $page).text();
+                var raw_amount = $('#lblForeignCurrencyAmount', $page).text();
+
+                var pre_number_regexp = /([^0-9 .])([0-9\-.]+)\s*/g; // €100 or £100
+                var post_number_regexp = /([0-9\-.]+) (...)\s*/g; // 100 UAH or 100 CHF
+
+                if (pre_number_regexp.test(raw_amount)) {
+                    data.transaction_amount = parseFloat(raw_amount.replace(pre_number_regexp, '$2'));
+                    data.transaction_currency = raw_amount.replace(pre_number_regexp, '$1');
+                }
+                else if (post_number_regexp.test(raw_amount)) {
+                    data.transaction_amount = parseFloat(raw_amount.replace(post_number_regexp, '$1'));
+                    data.transaction_currency = raw_amount.replace(post_number_regexp, '$2');
+                }
+                data.transaction_currency = data.transaction_currency ? data.transaction_currency : 'USD';
+
+                data.transaction_fee = parseFloat($('#lblFeeRate', $page).text().replace(/[$€]/g, ''));
+                if (data.transaction_type === 'ATM Withdrawal') {
+                    data.type = 'transfer';
+                    data.transfer_type = 'cash';
+                }
+                else if (/Withdrawal to/.test(data.transaction_type)) {
+                    data.type = 'transfer';
+                    data.transfer_type = 'bank';
                 }
                 else {
-                    if (upd.Details[0].Content[2].Values[0].ResKey !== 'AmountAndCurrency.Text') {
-                        throw "Something is wrong with details data structure, please check (AmountAndCurrency.Text).";
-                    }
-                    data.transaction_amount = parseFloat(upd.Details[0].Content[2].Values[0].ResParams.Amount);
-                    data.transaction_currency = upd.Details[0].Content[2].Values[0].ResParams.Currency;
-                    data.transaction_fee = 0
+                    data.type = data.debit == '' ? 'credit' : 'debit';
                 }
+                $(row).data('data', data);
 
+                localStorage['t' + data.id] = data.transaction_type;
                 localStorage['ta' + data.id] = data.transaction_amount;
                 localStorage['tc' + data.id] = data.transaction_currency;
                 localStorage['tf' + data.id] = data.transaction_fee;
 
-                $(row).data('data', data);
-
                 this.renderRowControls(row, data);
             }.bind(this));
         }
-
-        $(row).data('data', data);
+        else {
+            this.renderRowControls(row, data);
+        }
+    },
+    loadPayoneerTransactionDetails: function (qaz, data, index, callback) {
+        $.post('https://myaccount.payoneer.com/MainPage/TransactionDetailsTemplate.aspx?transactionDetails=true&AuditId=' + data.id + '&rowindex=' + index + '&currPage=' + $('.currentPage').text(),
+            JSON.stringify({PayoneerInternalId: $('#qaz').val()}), function (page) {
+                callback($(page), data);
+            }.bind(this));
     },
     isTransactionIgnored: function (data) {
         var start_date = this.getSettings('integration_start_date');
@@ -348,7 +295,7 @@ var app = {
         var tr, r;
         for (var i = 0; i < this.transactions.length; i++) {
             tr = this.transactions[i];
-            tr.iso_date = tr.iso_date || (tr.Date.indexOf('/') == -1 ? rusDateToISO(tr.Date) : amDateToISO(tr.Date));
+            tr.iso_date = tr.iso_date || (tr.Date.indexOf('/') == -1 ? this.rusDateToISO(tr.Date) : this.amDateToISO(tr.Date));
             r = new RegExp('^' + regexp_escape(data.description) + '( \[#[0-9]+\])?$');
             if (tr.Total == data.total) {
                 if (tr.iso_date.split(" ")[0] == data.date.split(" ")[0]) {
@@ -361,12 +308,11 @@ var app = {
         }
         return false;
     },
-    loadPayoneerTransactionDetails: function (data, callback) {
-        $.get('https://activityfacade.payoneer.com/api/activity/getItemDetails?activityItemId=' + data.id + '&activityType=' + data.typeId, function (upd) {
-            callback(data, upd);
-        });
-    },
     renderRowControls: function (row, data) {
+        if (data.transaction_type == 'Load to card') {
+            return;
+        }
+
         var ignoreClicks = function (e) {
             e.stopPropagation();
             if (e.target.nodeName == 'A') return;
@@ -376,7 +322,7 @@ var app = {
 
         if (data.type == 'transfer') {
             var accounts_cell = document.createElement('td');
-            accounts_cell.className = "table__table-td accounts first";
+            accounts_cell.className = "accounts first";
             $(accounts_cell).bind('click', ignoreClicks);
 
             var accounts_select = this.renderRowAccounts(row, data);
@@ -386,7 +332,7 @@ var app = {
         }
         else {
             var categories_cell = document.createElement('td');
-            categories_cell.className = "table__table-td categories first";
+            categories_cell.className = "categories first";
             $(categories_cell).bind('click', ignoreClicks);
 
             var categories_select = this.renderRowCategories(row, data);
@@ -395,7 +341,7 @@ var app = {
             row.appendChild(categories_cell);
         }
 
-        $(row).append('<td class="table__table-td plan"></td>');
+        $(row).append('<td class="plan"></td>');
         var $plan = $('<input type="checkbox" class="homemoney-plan" value="plan" />');
         $('.plan', row).append($plan);
         var transaction;
@@ -410,7 +356,7 @@ var app = {
             }
         });
 
-        $(row).append('<td class="table__table-td export"></td>');
+        $(row).append('<td class="export"></td>');
         var $export = this.renderRowExport(row, data);
         $('.export', row).append($export).bind('click', ignoreClicks);
 
@@ -722,13 +668,8 @@ var app = {
         this.updateCategories();
     },
     updateCategories: function () {
-        $('.transactions__body__tables__table-transactions tbody tr:not(.homemoney-processed)').each(function (index, row) {
+        $('#gvTranscations tbody tr.homemoney-processed').each(function (index, row) {
             var data = $(row).data('data');
-
-            if (!data) {
-                return;
-            }
-
             var category = localStorage.getItem('c' + data.type.charAt(0) + '_' + data.description);
 
             if (data.type != 'transfer' && category) {
@@ -739,12 +680,51 @@ var app = {
             }
         }.bind(this));
     },
+    handlePrevNextButtons: function () {
+        $('.searchDateRange').delegate('.btnDateRangeSearch', 'click', function () {
+            this.loadTransactions(this.renderHomemoneyBody.bind(this));
+        }.bind(this));
+        $('.searchPanel').delegate('.input[type=button]', 'click', this.renderHomemoneyBody.bind(this));
+        $('.pageNavigation').delegate('.prevPage, .nextPage', 'click', this.renderHomemoneyBody.bind(this));
+    },
+    addMiscControls: function () {
+        $('.searchPanel:not(.hmp-log)').append('<a href="#" class="btn-little log-not-added" title="Log not added transactions">Log missing</a>').addClass('hmp-log');
+        $('.searchPanel').delegate('.log-not-added', 'click', function () {
+            this.logNotAddedTransactions();
+            return false;
+        }.bind(this));
+
+        $('.searchPanel:not(.hmp-cache)').append('<a href="#" class="btn-little refresh-cache">Refresh transactions cache</a>').addClass('hmp-cache');
+        $('.searchPanel').delegate('.refresh-cache', 'click', function () {
+            $('#gvTranscations tbody tr').each(function () {
+                var id = $(this).attr('rowkeyvalue');
+                localStorage.removeItem('t' + id);
+                localStorage.removeItem('ta' + id);
+                localStorage.removeItem('tc' + id);
+                localStorage.removeItem('tf' + id);
+            });
+            return false;
+        }.bind(this));
+    },
+    logNotAddedTransactions: function () {
+        var result = [];
+        for (var i = 0; i < this.transactions.length; i++) {
+            var tr = this.transactions[i];
+            if (tr.added == undefined || !tr.added) {
+                if (/\(Payoneer fee\) \[/.test(tr.Description)) {
+                    continue;
+                }
+                result.push(this.transactions[i]);
+            }
+        }
+        console.log(result);
+    },
     destroy: function () {
         // Simplest possible way to die.
+        debugger;
         location.reload();
     }
 };
+debugger;
 
-setTimeout(function () {
-    app.start();
-}, 0);
+app.start();

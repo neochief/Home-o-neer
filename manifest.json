@@ -8,10 +8,12 @@
     "tabs",
     "storage",
     "background",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "https://activityfacade.payoneer.com/*"
   ],
   "web_accessible_resources": [
-    "resources/*"
+    "resources/*",
+    "js/tr.js"
   ],
   "icons": {
     "16": "resources/icon-16.png",
@@ -37,7 +39,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://myaccount.payoneer.com/MainPage/Widget.aspx?w=Activity#/activity/transactions"
+        "https://myaccount.payoneer.com/MainPage/Widget.aspx?w=Activity"
       ],
       "css": [
         "css/font-awesome.css",
@@ -45,6 +47,8 @@
       ],
       "js": [
         "js/lib/jquery.min.js",
+        "js/lib/moments.js",
+        "js/tr.js",
         "js/homemoney.js",
         "js/payoneer-transactions.js"
       ]

@@ -104,14 +104,13 @@ function transactionSave(token, accountId, type, total, currencyId, categoryId, 
         Token: token,
         AccountId: accountId,
         Type: type == 'transfer' ? '2' : (type == 'credit' ? '3' : '1'),
-        Total: total,
+        Total: total.toString(),
         CurencyId: currencyId,
         CategoryId: categoryId,
         Date: date,
         Description: description,
         isPlan: isPlan ? 'true' : 'false',
-        GUID: guid,
-        editing: editing // for internal use
+        GUID: guid
     };
     if (type == 'transfer') {
         data.CategoryId = '0';
@@ -143,6 +142,7 @@ function stringToHex(tmp) {
     return str;
 }
 function toGUID(id, token) {
+    id = id.replace(/^.*,/, '');
     id = pad(id, 32);
     var parts = [];
     parts.push(stringToHex(token).slice(0, 8));
