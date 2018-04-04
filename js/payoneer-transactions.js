@@ -277,45 +277,97 @@ var app = {
         data.id = tr.ActivityId;
         data.date = moment(tr.Date).format('YYYY-MM-DD hh:mm:ss');
         data.description = tr.Description.Value;
-        data.total = parseFloat(amount.replace(/^\-/, ''));
+        data.total = parseFloat(amount.replace(',', '').replace(/^\-/, ''));
+        data.transaction_amount = data.total;
+        data.transaction_currency = 'USD';
+        data.transaction_fee = 0;
 
         data.typeId = tr.TypeId;
         switch (tr.TypeId) {
+            // Withdraw to bank account.
+            case 1:
+                data.type = 'transfer';
+                data.transfer_type = 'bank';
+                break;
+            // Regular debit transaction.
             case 2:
                 data.type = 'debit';
                 break;
+            // ATM withdrawal.
             case 3:
                 data.type = 'transfer';
                 data.transfer_type = 'cash';
                 break;
+            // Money that came from partners.
             case 6:
                 data.type = 'credit';
+                // Immediate load fee is $5 (not included into visible total).
+                data.total += 5;
+                data.transaction_amount += 5;
+                data.transaction_fee = 5;
+                break;
+            // Transfer to other Payoneer account.
+            case 14:
+                data.type = 'debit';
                 break;
         }
+
+        $(row).data('data', data);
 
         if (localStorage.getItem('ta' + data.id)) {
             data.transaction_amount = parseFloat(localStorage['ta' + data.id]);
             data.transaction_currency = localStorage['tc' + data.id];
             data.transaction_fee = parseFloat(localStorage['tf' + data.id]);
             this.renderRowControls(row, data);
+            return;
         }
-        else {
+
+        if (data.type === 'transfer') {
             this.loadPayoneerTransactionDetails(data, function (data, upd) {
-                if (data.type === 'transfer') {
-                    if (upd.Details[1].Content[5].Values[0].ResKey !== 'SidebarTransactionAmountTitle.Text') {
-                        throw "Something is wrong with details data structure, please check (SidebarTransactionAmountTitle.Text).";
+                if (data.transfer_type === 'cash') {
+                    if (!upd.Details[1] ||
+                        !upd.Details[1].Content[4] ||
+                        !upd.Details[1].Content[4].Title ||
+                        !upd.Details[1].Content[4].Title.ResKey ||
+                        upd.Details[1].Content[4].Title.ResKey !== 'SidebarTransactionAmountTitle.Text') {
+                        console.error("Something is wrong with details data structure, please check (SidebarTransactionAmountTitle.Text).\n\n Transaction data: ");
+                        console.error(data);
+                        console.error(upd);
+                        return;
                     }
-                    data.transaction_amount = parseFloat(upd.Details[1].Content[5].Values[0].ResParams.Amount);
-                    data.transaction_currency = upd.Details[1].Content[5].Values[0].ResParams.Currency;
-                    data.transaction_fee = parseFloat(upd.Details[0].Content[1].Values[0].ResParams.Amount);
+
+                    data.transaction_amount = parseFloat(upd.Details[1].Content[4].Values[0].ResParams.Amount.replace(',', ''));
+                    data.transaction_currency = upd.Details[1].Content[4].Values[0].ResParams.Currency;
+                    data.transaction_fee = parseFloat(upd.Details[0].Content[1].Values[0].ResParams.Amount.replace(',', ''));
+                }
+                else if (data.transfer_type === 'bank') {
+                    if (!upd.Details[1] ||
+                        !upd.Details[1].Content[1] ||
+                        !upd.Details[1].Content[1].Title ||
+                        !upd.Details[1].Content[1].Title.ResKey ||
+                        upd.Details[1].Content[1].Title.ResKey !== 'SidebarTransferAmountTitle.Text') {
+                        console.error("Something is wrong with details data structure, please check (SidebarTransactionAmountTitle.Text).\n\n Transaction data:");
+                        console.error(data);
+                        console.error(upd);
+                        return;
+                    }
+
+                    data.transaction_amount = parseFloat(upd.Details[1].Content[1].Values[0].ResParams.Amount.replace(',', ''));
+                    data.transaction_currency = upd.Details[1].Content[1].Values[0].ResParams.Currency;
+                    if (data.transaction_currency === 'USD') {
+                        // $1.5
+                        data.transaction_fee = 1.5;
+                    }
+                    else {
+                        // 2% + $2.
+                        data.transaction_fee = data.transaction_amount * 0.02 + 2;
+                    }
                 }
                 else {
-                    if (upd.Details[0].Content[2].Values[0].ResKey !== 'AmountAndCurrency.Text') {
-                        throw "Something is wrong with details data structure, please check (AmountAndCurrency.Text).";
-                    }
-                    data.transaction_amount = parseFloat(upd.Details[0].Content[2].Values[0].ResParams.Amount);
-                    data.transaction_currency = upd.Details[0].Content[2].Values[0].ResParams.Currency;
-                    data.transaction_fee = 0
+                    console.error("Unknown transfer.\n\n Transaction data:");
+                    console.error(data);
+                    console.error(upd);
+                    return;
                 }
 
                 localStorage['ta' + data.id] = data.transaction_amount;
@@ -326,9 +378,16 @@ var app = {
 
                 this.renderRowControls(row, data);
             }.bind(this));
+            return;
         }
 
+        localStorage['ta' + data.id] = data.transaction_amount;
+        localStorage['tc' + data.id] = data.transaction_currency;
+        localStorage['tf' + data.id] = data.transaction_fee;
+
         $(row).data('data', data);
+
+        this.renderRowControls(row, data);
     },
     isTransactionIgnored: function (data) {
         var start_date = this.getSettings('integration_start_date');
@@ -560,6 +619,11 @@ var app = {
                 default_select.innerHTML = options;
                 this.category_selects[c] = default_select;
             }
+        }
+
+        if (!data.type || !this.category_selects[data.type]) {
+            console.error("Can't render category control for following data: " + JSON.stringify(data));
+            return;
         }
 
         var select = this.category_selects[data.type].cloneNode(true);
