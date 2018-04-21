@@ -259,7 +259,7 @@ var app = {
             var tr = this.lastPayoneerData[ind];
             if (tr.homemoney === undefined &&
                 date === moment(tr.Date).format('YYYY-MM-DD') &&
-                comment === tr.Description.Value &&
+                (comment === tr.Description.Value || tr.TypeId == 20) &&
                 amount === tr.Amount.ResParams.Amount) {
 
                 tr.homemoney = true;
@@ -276,7 +276,7 @@ var app = {
         var data = {};
         data.id = tr.ActivityId;
         data.date = moment(tr.Date).format('YYYY-MM-DD hh:mm:ss');
-        data.description = tr.Description.Value;
+        data.description = tr.Description.Value || comment;
         data.total = parseFloat(amount.replace(',', '').replace(/^\-/, ''));
         data.transaction_amount = data.total;
         data.transaction_currency = 'USD';
@@ -310,6 +310,18 @@ var app = {
             case 14:
                 data.type = 'debit';
                 break;
+            // Transfer from other Payoneer account.
+            case 15:
+                data.type = 'credit';
+                break;
+            // Payoneer fees.
+            case 20:
+                data.type = 'debit';
+                data.category = this.getSettings('payoneer_fees_category');
+                break;
+            default:
+                console.error('Unknown type ID ' + tr.TypeId + '. (' + JSON.stringify(tr) + ')');
+                return;
         }
 
         $(row).data('data', data);
@@ -596,7 +608,6 @@ var app = {
                         }
                     }
                 }
-
             }
             else {
                 $('.homemoney-export', row).trigger('disable', 'account');
@@ -650,7 +661,13 @@ var app = {
             $select.val(this.getSettings('payoneer_fees_category'));
         }
         else {
-            var saved_category = localStorage.getItem('c' + data.type.charAt(0) + '_' + data.description);
+            var saved_category;
+            if (data.category) {
+                saved_category = data.category;
+            } 
+            else {
+                saved_category = localStorage.getItem('c' + data.type.charAt(0) + '_' + data.description);
+            }
             $select.val(saved_category);
             $select.data('changed', false);
         }
