@@ -135,6 +135,12 @@ var app = {
             }
             this.initIfReady();
         }.bind(this));
+        
+        $("body").on("click", ".load-more__btn", function(){
+            setTimeout(function(){
+                this.initIfReady();
+            }.bind(this), 1000);
+        }.bind(this));
     },
     getTokenOrWait: function (success, failure, just_checking) {
         messenger.listen('DeliverHomemoneyToken', function (request) {
