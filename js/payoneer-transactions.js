@@ -294,6 +294,7 @@ var app = {
             case 1:
                 data.type = 'transfer';
                 data.transfer_type = 'bank';
+                data.date = moment(tr.Date).add(1, 'days').format('YYYY-MM-DD hh:mm:ss');
                 break;
             // Regular debit transaction.
             case 2:
@@ -378,7 +379,7 @@ var app = {
                     }
                     else {
                         // 2% + $2.
-                        data.transaction_fee = data.transaction_amount * 0.02 + 2;
+                        data.transaction_fee = data.total * 0.02 + 2;
                     }
                 }
                 else {
