@@ -309,8 +309,11 @@ var app = {
             case 6:
                 data.type = 'credit';
                 // Immediate load fee is $5 (not included into visible total).
-                data.total += 5;
-                data.transaction_amount += 5;
+                //
+                // We multiply it since the fee is deducted from total when 
+                // transaction is saved.
+                data.total += 5 * 2;
+                data.transaction_amount += 5 * 2;
                 data.transaction_fee = 5;
                 break;
             // Transfer to other Payoneer account.
