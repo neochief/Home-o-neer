@@ -137,7 +137,7 @@ var app = {
         }.bind(this));
         
         $("body").on("click", ".load-more__btn", function(){
-            setTimeout(function(){
+            setInterval(function(){
                 this.initIfReady();
             }.bind(this), 1000);
         }.bind(this));
@@ -283,13 +283,16 @@ var app = {
         data.id = tr.ActivityId;
         data.date = moment(tr.Date).format('YYYY-MM-DD hh:mm:ss');
         data.description = tr.Description.Value || comment;
+        data.isNegative = /^\-/.test(amount);
         data.total = parseFloat(amount.replace(',', '').replace(/^\-/, ''));
         data.transaction_amount = data.total;
         data.transaction_currency = 'USD';
         data.transaction_fee = 0;
-
         data.typeId = tr.TypeId;
-        switch (tr.TypeId) {
+
+        
+
+        switch (data.typeId) {
             // Withdraw to bank account.
             case 1:
                 data.type = 'transfer';
@@ -299,6 +302,12 @@ var app = {
             // Regular debit transaction.
             case 2:
                 data.type = 'debit';
+
+                // Refunds have also dataid==2
+                if (!data.isNegative) {
+                    data.type = 'credit';
+                }
+
                 break;
             // ATM withdrawal.
             case 3:
