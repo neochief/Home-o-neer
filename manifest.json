@@ -3,8 +3,10 @@
   "name": "__MSG_extName__",
   "description": "__MSG_extDescription__",
   "default_locale": "en",
-  "version": "2.0",
+  "version": "3.0",
   "permissions": [
+    "webRequest",
+    "webRequestBlocking",
     "tabs",
     "storage",
     "background",
@@ -31,7 +33,10 @@
   "background": {
     "scripts": [
       "js/lib/jquery.min.js",
-      "js/homemoney.js",
+      "js/messenger.js",
+      "js/utils.js",
+      "js/homemoney-utils.js",
+      "js/homemoney-api.js",
       "js/background.js"
     ],
     "persistent": true
@@ -48,8 +53,10 @@
       "js": [
         "js/lib/jquery.min.js",
         "js/lib/moments.js",
+        "js/messenger.js",
+        "js/utils.js",
         "js/tr.js",
-        "js/homemoney.js",
+        "js/homemoney-utils.js",
         "js/payoneer-transactions.js"
       ]
     },
@@ -58,6 +65,7 @@
         "https://myaccount.payoneer.com/MainPage/PromoPage.aspx"
       ],
       "js": [
+        "js/messenger.js",
         "js/payoneer-home.js"
       ]
     },
@@ -67,6 +75,7 @@
       ],
       "js": [
         "js/lib/jquery.min.js",
+        "js/messenger.js",
         "js/homemoney-token.js"
       ]
     }

@@ -1,134 +1,7 @@
-var currency_transforms = {
-    USD: /^(\$|USD|дол)/i,
-    UAH: /^(₴|UAH|грн|hrn|grn)/i,
-    EUR: /^(€|EUR|евр|євр)/i,
-    RUB: /^(₽|RUB|руб)/i
-};
-
-function homemoney_api(method, payload, success, failure) {
-    var url = 'https://homemoney.ua/api/api2.asmx/' + method;
-    $.post(url, payload).done(function (data) {
-        data.payload = payload;
-        if (data.code && data.message) {
-            if (typeof failure == "function")  failure(data.message, data.code);
-            return;
-        }
-        if (data.Error && data.Error.message) {
-            if (typeof failure == "function")  failure(data.Error.message);
-            return;
-        }
-        if (typeof success == "function") {
-            return success(data);
-        }
-    }).fail(function(data){
-        data.payload = payload;
-        if (typeof failure == "function") failure(data);
-    });
-}
-
-function getTransactions(token, date_from, date_to, account, success, failure) {
-    if (typeof account == "function") {
-        success = account;
-        account = null;
-    }
-    homemoney_api('TransactionListByPeriod', {
-        token: token,
-        from: date_from,
-        to: date_to
-    }, function (data) {
-        var transactions = [];
-        if (account) {
-            for (var i = 0; i < data.ListTransaction.length; i++) {
-                if (data.ListTransaction[i].AccountId == account) {
-                    transactions.push(data.ListTransaction[i]);
-                }
-            }
-        }
-        else {
-            transactions = data.ListTransaction;
-        }
-        success(transactions);
-    }, failure);
-}
-
-function getCategories(token, success, failure) {
-    homemoney_api('CategoryList', {token: token}, function (data) {
-        var debit = $.grep(data.ListCategory, function (k) {
-            return k.type == 1;
-        });
-        var credit = $.grep(data.ListCategory, function (k) {
-            return k.type == 3;
-        });
-        var categories = {debit: debit, credit: credit};
-        success(categories);
-    }, failure);
-}
-
-function getAccounts(token, success, failure) {
-    homemoney_api('BalanceList ', {token: token}, success, failure);
-}
-
-function getHomemoneyCurrencyId(accounts, account_id, iso_currency) {
-    var exact = GroupIterator(accounts, null, function (account) {
-        return account.id == account_id;
-    });
-
-    if (!exact.length) return;
-    var account = exact[0];
-
-    for (var i = 0; i < account.ListCurrencyInfo.length; i++) {
-        var account_currency = account.ListCurrencyInfo[i];
-        if (homemoneyCurrencyEquals(account_currency, iso_currency)) {
-            return account_currency.id;
-        }
-    }
-}
-
-function homemoneyCurrencyEquals(currency, currency_name) {
-    var regexp = currency_transforms[currency_name];
-    if (!regexp) {
-        for (var iso_currency in currency_transforms) {
-            if (currency_transforms[iso_currency].test(currency_name)) {
-                regexp = currency_transforms[iso_currency];
-                break;
-            }
-        }
-    }
-    if (regexp && regexp.test(currency.shortname)) {
-        return true;
-    }
-}
-
-function transactionSave(token, accountId, type, total, currencyId, categoryId, date, description, transAccountId, transTotal, transCurencyId, isPlan, guid, editing, success, failure) {
-    var data = {
-        Token: token,
-        AccountId: accountId,
-        Type: type == 'transfer' ? '2' : (type == 'credit' ? '3' : '1'),
-        Total: total.toString(),
-        CurencyId: currencyId,
-        CategoryId: categoryId,
-        Date: date,
-        Description: description,
-        isPlan: isPlan ? 'true' : 'false',
-        GUID: guid
-    };
-    if (type == 'transfer') {
-        data.CategoryId = '0';
-        data.TransAccountId = transAccountId;
-        data.TransTotal = transTotal;
-        data.TransCurencyId = transCurencyId;
-    }
-    else {
-        data.TransAccountId = '0';
-        data.TransTotal = '0';
-        data.TransCurencyId = '0';
-    }
-    homemoney_api('TransactionSave', data, success, failure);
-}
-
 function d2h(d) {
     return d.toString(16);
 }
+
 function stringToHex(tmp) {
     var str = '',
         i = 0,
@@ -141,6 +14,7 @@ function stringToHex(tmp) {
     }
     return str;
 }
+
 function toGUID(id, token) {
     id = id.replace(/^.*,/, '');
     id = pad(id, 32);
@@ -159,40 +33,6 @@ function pad(n, width, z) {
     return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
-function GroupIterator(groups, GroupsMatcher, AccountsMatcher) {
-    var result = [], accounts;
-    for (var g = 0; g < groups.ListGroupInfo.length; g++) {
-        var group = groups.ListGroupInfo[g];
-        if (!GroupsMatcher || GroupsMatcher(group)) {
-            if (AccountsIterator) {
-                accounts = AccountsIterator(group.ListAccountInfo, AccountsMatcher);
-            }
-            else {
-                accounts = group.ListAccountInfo;
-            }
-            for (var i = 0; i < accounts.length; i++) {
-                accounts[i].group = group;
-            }
-            result = result.concat(accounts);
-        }
-    }
-    return result;
-}
-
-function AccountsIterator(accounts, matcher) {
-    if (!matcher) {
-        return accounts;
-    }
-    var result = [];
-    for (var a = 0; a < accounts.length; a++) {
-        var account = accounts[a];
-        if (matcher(account)) {
-            result.push(account);
-        }
-    }
-    return result;
-}
-
 function arrayUnique(array) {
     var a = array.concat();
     for (var i = 0; i < a.length; ++i) {
@@ -202,67 +42,6 @@ function arrayUnique(array) {
         }
     }
     return a;
-}
-
-function getPayoneerOrderedAccounts(data) {
-    var exact = GroupIterator(data, function (group) {
-        return group.id == 5;
-    }, function (account) {
-        return account.name == 'Payoneer';
-    });
-    var close = GroupIterator(data, function (group) {
-        return group.id == 5;
-    }, function (account) {
-        return account.name != 'Payoneer' && /.*Payoneer.*/g.test(account.name);
-    });
-    var others = GroupIterator(data, function (group) {
-        return group.id == 5;
-    }, function (account) {
-        return account.name != 'Payoneer' && !/.*Payoneer.*/g.test(account.name);
-    });
-    return arrayUnique([].concat(exact, close, others));
-}
-
-function getWithdrawalAccounts(data, top_of_the_list, allowed_currencies, type) {
-    type = type == undefined ? 1 : type;
-
-    top_of_the_list = top_of_the_list ? GroupIterator(data, null, function (account) {
-        return account.id == top_of_the_list
-    }) : [];
-
-    var exact = GroupIterator(data, function (group) {
-        return group.id == type;
-    }, function (account) {
-        return account.isDefault == true;
-    });
-    var close = GroupIterator(data, function (group) {
-        return group.id == type;
-    }, function (account) {
-        return account.isDefault != true;
-    });
-    var all = arrayUnique([].concat(top_of_the_list, exact, close));
-
-    if (allowed_currencies) {
-        var result = [];
-        for (var i = 0; i < all.length; i++) {
-            var account = all[i];
-            currency:
-            for (var j = 0; j < account.ListCurrencyInfo.length; j++) {
-                var account_currency = account.ListCurrencyInfo[j];
-                for (var k = 0; k < allowed_currencies.length; k++) {
-                    var regexp = currency_transforms[allowed_currencies[k]];
-                    if (regexp) {
-                        if (regexp.test(account_currency.shortname)) {
-                            result.push(account);
-                            break currency;
-                        }
-                    }
-                }
-            }
-        }
-        all = result;
-    }
-    return all;
 }
 
 function regexp_escape(s) {

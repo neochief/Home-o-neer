@@ -1,20 +1,5 @@
 $ = jQuery;
 
-var messenger = {
-    send: function (method, data, callback) {
-        data = data || {};
-        data.method = method;
-        chrome.runtime.sendMessage(data, callback);
-    },
-    listen: function (method, callback) {
-        chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-            if (request.method == method) {
-                callback(request, sendResponse);
-            }
-        });
-    }
-};
-
 // 3 Jan 2018 -> 2016-01-15 09:56:00
 function amDateToISO2(amDate) {
     var date = amDate.split(" ");
@@ -96,7 +81,7 @@ var app = {
         if (!document.getElementsByClassName('myaccount').length) {
             return;
         }
-        messenger.send('ArrivedToTransactions');
+        Messenger.send('ArrivedToTransactions');
 
         var first = true;
         this.getTokenOrWait(function (homemoney_token) {
@@ -143,36 +128,36 @@ var app = {
         }.bind(this));
     },
     getTokenOrWait: function (success, failure, just_checking) {
-        messenger.listen('DeliverHomemoneyToken', function (request) {
+        Messenger.listen('DeliverHomemoneyToken', function (request) {
             if (request.token == undefined || !request.token) {
                 return typeof failure == "function" ? failure(request.token) : failure;
             }
             return typeof success == "function" ? success(request.token) : success;
         });
-        messenger.send("RequestHomemoneyToken", {just_checking: just_checking});
+        Messenger.send("RequestHomemoneyToken", {just_checking: just_checking});
     },
     loadHomemoneyData: function () {
         console.log('sl: loadHomemoneyData');
 
-        getCategories(this.homemoney_token, function (categories) {
+        Messenger.send('Homemoney:getCategories', {args: [this.homemoney_token]}, (result) => {
             console.log('s3: categories success');
-            this.categories = categories;
+            this.categories = result.data;
             this.initIfReady();
-        }.bind(this));
+        });
 
-        getAccounts(this.homemoney_token, function (accounts) {
+        Messenger.send('Homemoney:getAccounts', {args: [this.homemoney_token]}, (result) => {
             console.log('s4: accounts success');
-            this.accounts = accounts;
+            this.accounts = result.data;
             this.initIfReady();
-        }.bind(this));
+        });
 
-        messenger.send("RequestHomemoneySettings", null, function (settings) {
+        Messenger.send("RequestHomemoneySettings", null, function (settings) {
             console.log('s5: settings success');
             this.settings = settings;
             this.initIfReady();
         }.bind(this));
 
-        messenger.listen('HomemoneySettingsUpdated', function (request) {
+        Messenger.listen('HomemoneySettingsUpdated', function (request) {
             this.settings = request.settings;
             this.initIfReady();
         }.bind(this));
@@ -193,23 +178,23 @@ var app = {
             to = moment().format('YYYY-MM-DD') + ' 23:59:59';
         }
 
-        getTransactions(this.homemoney_token, from, to, function (transactions) {
+        Messenger.send("Homemoney:getTransactions", {args: [this.homemoney_token, from, to]}, (result) => {
             console.log('s6: transactions success');
 
             var account = this.getSettings('payoneer_account');
             if (account) {
                 this.transactions = [];
-                for (var i = 0; i < transactions.length; i++) {
-                    if (transactions[i].AccountId == account) {
-                        this.transactions.push(transactions[i]);
+                for (var i = 0; i < result.data.length; i++) {
+                    if (result.data[i].AccountId == account) {
+                        this.transactions.push(result.data[i]);
                     }
                 }
             }
             else {
-                this.transactions = transactions;
+                this.transactions = result.data;
             }
             callback();
-        }.bind(this));
+        });
     },
     getSettings: function (property) {
         var profile = $('option[value=' + $('#ddlAccounts').val() + ']').first().text().replace('Prepaid Card - XXXX-', '');
@@ -227,7 +212,7 @@ var app = {
         console.log("- settings:" + (this.settings ? "ok" : "null"));
         console.log("- transactions:" + (this.transactions ? "ok" : "null"));
         if (this.categories && this.accounts && this.settings && this.transactions) {
-            this.USD_currency_id = getHomemoneyCurrencyId(this.accounts, this.getSettings('payoneer_account'), 'USD');
+            this.USD_currency_id = HomemoneyUtils.getHomemoneyCurrencyId(this.accounts, this.getSettings('payoneer_account'), 'USD');
             this.init();
         }
     },
@@ -515,7 +500,7 @@ var app = {
             var default_select = document.createElement('select');
             default_select.className = "primary homemoney-account";
             var options = '<option value="" selected></option>';
-            var accounts = getWithdrawalAccounts(
+            var accounts = HomemoneyUtils.getWithdrawalAccounts(
                 this.accounts,
                 this.getSettings('withdraw_account'),
                 data.transaction_currency != 'all' ? (['USD', data.transaction_currency]) : null,
@@ -570,7 +555,8 @@ var app = {
                 $('.homemoney-export', row).trigger('enable');
 
                 var currencies = [];
-                var accounts = getWithdrawalAccounts(
+
+                var accounts = HomemoneyUtils.getWithdrawalAccounts(
                     that.accounts,
                     that.getSettings('withdraw_account'),
                     data.transaction_currency != 'all' ? (['USD', data.transaction_currency]) : null,
@@ -580,13 +566,17 @@ var app = {
                     if (accounts[i].id == value) {
                         var all_currencies = accounts[i].ListCurrencyInfo;
                         for (var j = 0; j < all_currencies.length; j++) {
-                            if (data.transaction_currency === 'all' || homemoneyCurrencyEquals(all_currencies[j], 'USD') || homemoneyCurrencyEquals(all_currencies[j], data.transaction_currency)) {
+                            if (data.transaction_currency === 'all' ||
+                                HomemoneyUtils.homemoneyCurrencyEquals(all_currencies[j], 'USD') ||
+                                HomemoneyUtils.homemoneyCurrencyEquals(all_currencies[j], data.transaction_currency)) {
+
                                 currencies.push(all_currencies[j]);
                             }
                         }
                         break;
                     }
                 }
+
                 if (!accounts.length || !currencies.length) {
                     $('.homemoney-account-currency-note', $wrap).remove();
                     $wrap.append('<div class="homemoney-account-currency-note">' + chrome.i18n.getMessage("payoneer_error_no_cash_account", data.transaction_currency) + '</div>');
@@ -607,7 +597,7 @@ var app = {
                     }
                 }
                 if (!selected) {
-                    var regexp = currency_transforms[data.transaction_currency];
+                    var regexp = HomemoneyUtils.currency_transforms[data.transaction_currency];
                     if (regexp) {
                         for (var i = 0; i < currencies.length; i++) {
                             if (regexp.test(currencies[i].shortname)) {
@@ -620,7 +610,7 @@ var app = {
                         $('.homemoney-account-currency-note', $wrap).remove();
                         $wrap.append('<div class="homemoney-account-currency-note">' + chrome.i18n.getMessage("payoneer_error_no_cash_account2", data.transaction_currency) + '</div>');
                         for (var i = 0; i < currencies.length; i++) {
-                            if (currency_transforms['USD'].test(currencies[i].shortname)) {
+                            if (HomemoneyUtils.currency_transforms['USD'].test(currencies[i].shortname)) {
                                 $select_currencies.val(currencies[i].id);
                                 selected = true;
                             }
@@ -739,7 +729,7 @@ var app = {
                 secondary_transaction.guid = toGUID(secondary_transaction.id, that.homemoney_token);
 
                 var tr = that.isTransactionAdded(secondary_transaction);
-                transactionSave(that.homemoney_token,
+                Messenger.send('Homemoney:transactionSave', {args : [that.homemoney_token,
                     that.getSettings('payoneer_account'),
                     secondary_transaction.type,
                     secondary_transaction.total,
@@ -753,13 +743,13 @@ var app = {
                     secondary_transaction.plan,
                     secondary_transaction.guid,
                     tr ? true : false
-                );
+                ]});
             }
 
             $button.prop('disabled', true).removeClass('success').removeClass('error').addClass('progress');
             var tr = that.isTransactionAdded(data);
             primary_transaction.guid = tr ? tr.GUID : toGUID(primary_transaction.id, that.homemoney_token);
-            transactionSave(that.homemoney_token,
+            Messenger.send('Homemoney:transactionSave', {args: [that.homemoney_token,
                 that.getSettings('payoneer_account'),
                 primary_transaction.type,
                 primary_transaction.total,
@@ -772,25 +762,21 @@ var app = {
                 primary_transaction.transaction_curency_id,
                 primary_transaction.plan,
                 primary_transaction.guid,
-                tr ? true : false,
-                function (data) {
-                    that.transactions.push(data.payload);
+                tr ? true : false
+            ]}, (result) => {
+                if (result.success) {
+                    that.transactions.push(result.data.payload);
                     $select.data('changed', true);
                     $button.removeClass('progress').addClass('success').html('<i class="fa fa-check"></i><span class="title">' + chrome.i18n.getMessage("payoneer_done") + '</span>');
-                },
-                function (error, code) {
+                } else {
                     // Unblock button on error.
                     $button.removeClass('progress').addClass('error').prop('disabled', false).html('<i class="fa fa-refresh"></i><span class="title">' + chrome.i18n.getMessage("payoneer_retry") + '</span>');
-
-                    if (typeof error == "string") {
-                        alert(error);
-                    }
-                    else {
-                        console.error(error);
-                        alert(chrome.i18n.getMessage("payoneer_error_saving_transaction"));
+                    var message = data.Error ? data.Error.message : data.message;
+                    if (message) {
+                        alert(chrome.i18n.getMessage("payoneer_error_saving_transaction") + ": " + message);
                     }
                 }
-            );
+            });
         });
 
         $button.bind('enable', function () {

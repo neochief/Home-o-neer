@@ -1,6 +1,6 @@
 $ = jQuery;
 
-var app = {
+var App = {
     HOMEMONEY_APP_ID: 46,
     transaction_tabs: [],
     rememberTab: function(id) {
@@ -39,15 +39,9 @@ var app = {
     },
     deliver_token: function(token) {
         for (var i = 0; i < this.transaction_tabs.length; i++) {
-            chrome.tabs.sendMessage(this.transaction_tabs[i], {
-                method: 'DeliverHomemoneyToken',
-                token: token
-            });
+            Messenger.sendToTab(this.transaction_tabs[i], 'DeliverHomemoneyToken', {token: token});
         }
-        chrome.runtime.sendMessage({
-            method: 'DeliverHomemoneyToken',
-            token: token
-        });
+        Messenger.send('DeliverHomemoneyToken', {token: token});
     },
     loadSavedSettings: function() {
         var settings = localStorage.getItem("homemoney-settings");
@@ -65,14 +59,14 @@ var app = {
     // ----------------------------------------- //
     // Chrome messaging methods ---------------- //
     // ----------------------------------------- //
-    RequestHomemoneyToken: function(request, sender, sendResponse) {
+    RequestHomemoneyToken: function(data, sender, sendResponse) {
         if (sender.tab != undefined) {
             this.rememberTab(sender.tab.id);
         }
 
         var token = this.get_token();
 
-        if (!request.just_checking && !token) {
+        if (!data.just_checking && !token) {
             var params = {
                 url: "https://homemoney.ua/api/oauth/authorize/m/?response_type=token&client_id=" + this.HOMEMONEY_APP_ID + "&scope=api"
             };
@@ -87,8 +81,8 @@ var app = {
             this.deliver_token(token);
         }
     },
-    UpdateHomemoneyToken: function(request, sender, sendResponse) {
-        var token = this.save_token(request.token_data);
+    UpdateHomemoneyToken: function(data, sender, sendResponse) {
+        var token = this.save_token(data.token_data);
         this.deliver_token(token);
 
         if (sender.tab != undefined) {
@@ -101,18 +95,18 @@ var app = {
             chrome.tabs.remove(sender.tab.id);
         }
     },
-    RequestHomemoneySettings: function(request, sender, sendResponse) {
+    RequestHomemoneySettings: function(data, sender, sendResponse) {
         sendResponse(this.loadSavedSettings());
     },
-    HomemoneySettingsUpdated: function(request, sender, sendResponse) {
+    HomemoneySettingsUpdated: function(data, sender, sendResponse) {
         for (var i = 0; i < this.transaction_tabs.length; i++) {
             chrome.tabs.sendMessage(this.transaction_tabs[i], {
                 method: 'HomemoneySettingsUpdated',
-                settings: request.settings
+                settings: data.settings
             });
         }
     },
-    DoGoToTransactions: function(request, sender, sendResponse){
+    DoGoToTransactions: function(data, sender, sendResponse){
         var payoneer_do_go_to_transactions = localStorage.getItem('payoneer_do_go_to_transactions');
         if (payoneer_do_go_to_transactions) {
             if ((parseInt(payoneer_do_go_to_transactions) + 180) < new Date().getTime()) {
@@ -121,15 +115,40 @@ var app = {
             localStorage.removeItem('payoneer_do_go_to_transactions');
         }
     },
-    ArrivedToTransactions: function(request, sender, sendResponse){
+    ArrivedToTransactions: function(data, sender, sendResponse){
         localStorage.removeItem('payoneer_do_go_to_transactions');
     }
 };
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    if (typeof app[request.method] == "function") {
-        app[request.method].call(app, request, sender, sendResponse);
+Messenger.listen(function(data, sender, sendResponse) {
+    var className, methodName;
+    if (data.method.indexOf(':') !== -1) {
+        var parts = data.method.split(':');
+        className = parts[0];
+        methodName = parts[1];
     }
+
+    if (!className || typeof window[className] != "object" || typeof window[className][methodName] != "function") {
+        className = "App";
+        methodName = data.method;
+    }
+
+    if (typeof window[className] != "object" || typeof window[className][methodName] != "function") {
+        return;
+    }
+
+    var arguments = [];
+    if (data.args) {
+        arguments = data.args;
+    }
+    arguments.push(data, sender, sendResponse);
+
+    return window[className][methodName].apply(window[className], arguments);
 });
-chrome.tabs.onRemoved.addListener(app.forgetTab.bind(app));
+chrome.tabs.onRemoved.addListener(App.forgetTab.bind(App));
+
+chrome.webRequest.onHeadersReceived.addListener(details => {
+    details.responseHeaders.push({name:'Access-Control-Allow-Origin'.toLowerCase(), value: '*'});
+    return {responseHeaders: details.responseHeaders};
+}, {urls: ['<all_urls>']}, ["blocking", "responseHeaders", "extraHeaders"]);
 

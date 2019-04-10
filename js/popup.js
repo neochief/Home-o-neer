@@ -7,7 +7,6 @@ $(function () {
         start: function () {
             this.translate();
             setTimeout(function(){
-            debugger;
                 this.attachListeners();
                 this.init();
             }.bind(this), 3000)
@@ -98,8 +97,12 @@ $(function () {
             $('.homemoney-settings *').prop('disabled', true);
 
             this.settingsReady = false;
-            getAccounts(this.homemoney_token, this.onGetAccounts(success), this.onSettingsFail(failure));
-            getCategories(this.homemoney_token, this.onGetCategories(success), this.onSettingsFail(failure));
+            Messenger.send('Homemoney:getAccounts', {args: [this.homemoney_token]}, (result) => {
+                return result.success ? this.onGetAccounts(success)(result.data) : this.onSettingsFail(failure)();
+            });
+            Messenger.send('Homemoney:getCategories', {args: [this.homemoney_token]}, (result) => {
+                return result.success ? this.onGetCategories(success)(result.data) : this.onSettingsFail(failure)();
+            });
         },
 
         resetSettingForm: function () {
@@ -120,9 +123,9 @@ $(function () {
             $('.profile-remove').hide();
         },
 
-        onGetAccounts: function (success) {
+        onGetAccounts: function (callback) {
             return function (data) {
-                var all = getPayoneerOrderedAccounts(data);
+                var all = HomemoneyUtils.getPayoneerOrderedAccounts(data);
                 $('#homemoney-payoneer-account').empty();
                 var addedAnything = false;
                 for (var i = 0; i < all.length; i++) {
@@ -145,7 +148,7 @@ $(function () {
                     $('#homemoney-payoneer-account').val(this.getSettings('payoneer_account'));
                 }
 
-                all = getWithdrawalAccounts(data);
+                all = HomemoneyUtils.getWithdrawalAccounts(data);
                 if (!all.length) {
                     $('.homemoney-withdraw-account').append('<div class="error">' + chrome.i18n.getMessage("popup_error_cash_account") + '</div>');
                 }
@@ -163,12 +166,12 @@ $(function () {
                     $('#homemoney-integration-start-date').val(this.getSettings('integration_start_date'));
                 }
 
-                this.checkSettingsReady(success);
+                this.checkSettingsReady(callback);
                 this.settingsReady = true;
             }.bind(this);
         },
 
-        onGetCategories: function (success) {
+        onGetCategories: function (callback) {
             return function (categories) {
                 $('#homemoney-payoneer-fees-category').empty();
                 var cat_list = [];
@@ -189,7 +192,7 @@ $(function () {
                     $('#homemoney-payoneer-fees-category').val(this.getSettings('payoneer_fees_category'));
                 }
 
-                this.checkSettingsReady(success);
+                this.checkSettingsReady(callback);
                 this.settingsReady = true;
             }.bind(this);
         },
@@ -224,18 +227,16 @@ $(function () {
 
             $('.homemoney-link').click(function (e) {
                 $('.error', this).remove();
-                chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-                    if (request.method == 'DeliverHomemoneyToken') {
-                        if (request.token == undefined || !request.token) {
-                            $('.homemoney-link .error').remove();
-                            $('.homemoney-link').append('<div class="error">' + chrome.i18n.getMessage("popup_error_token") + '</div>');
-                        }
-                        else {
-                            that.init();
-                        }
+                Messenger.listen('DeliverHomemoneyToken', function (request) {
+                    if (request.token == undefined || !request.token) {
+                        $('.homemoney-link .error').remove();
+                        $('.homemoney-link').append('<div class="error">' + chrome.i18n.getMessage("popup_error_token") + '</div>');
+                    }
+                    else {
+                        that.init();
                     }
                 });
-                chrome.runtime.sendMessage({method: "RequestHomemoneyToken"});
+                Messenger.send("RequestHomemoneyToken");
             });
 
             $('.homemoney-settings #profile').bind('change', function (e) {
@@ -265,7 +266,9 @@ $(function () {
                 var settings = that.loadSavedSettings();
                 delete settings[profile];
                 localStorage.setItem("homemoney-settings", JSON.stringify(settings));
-                chrome.runtime.sendMessage({method: "HomemoneySettingsUpdated", settings: settings});
+
+                Messenger.send("HomemoneySettingsUpdated", {settings: settings});
+
                 that.init();
             });
 
@@ -306,7 +309,8 @@ $(function () {
                 delete settings[old_profile];
                 settings[new_profile] = profile_settings;
                 localStorage.setItem("homemoney-settings", JSON.stringify(settings));
-                chrome.runtime.sendMessage({method: "HomemoneySettingsUpdated", settings: settings});
+
+                Messenger.send("HomemoneySettingsUpdated", {settings: settings});
 
                 that.init();
                 return false;
@@ -318,7 +322,6 @@ $(function () {
             });
 
             $('.actions .settings').click(function () {
-                debugger;
                 that.syncData(function () {
                     $('.homemoney-settings').show();
                 });
@@ -329,14 +332,9 @@ $(function () {
                 localStorage.removeItem("homemoney-token");
                 localStorage.removeItem("homemoney-settings");
 
-                chrome.runtime.sendMessage({
-                    method: "UpdateHomemoneyToken",
-                    token_data: null
-                });
-                chrome.runtime.sendMessage({
-                    method: 'DeliverCredentials',
-                    email: null,
-                });
+                Messenger.send("UpdateHomemoneyToken", {token_data: null});
+                Messenger.send("DeliverCredentials", {email: null});
+
                 window.close();
             });
         },

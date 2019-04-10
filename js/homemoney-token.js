@@ -24,10 +24,7 @@
             token_data = null;
         }
 
-        chrome.runtime.sendMessage({
-            method: "UpdateHomemoneyToken",
-            token_data: token_data
-        });
+        Messenger.send("UpdateHomemoneyToken", {token_data: token_data});
     } else {
         // Fragment doesn't exist
     }
