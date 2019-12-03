@@ -299,6 +299,10 @@ var app = {
                 data.type = 'transfer';
                 data.transfer_type = 'cash';
                 break;
+            // ATM fees.
+            case 5:
+                data.type = 'debit';
+                break;
             // Money that came from partners.
             case 6:
                 data.type = 'credit';
@@ -346,15 +350,16 @@ var app = {
                         !upd.Details[1].Content[4].Title ||
                         !upd.Details[1].Content[4].Title.ResKey ||
                         upd.Details[1].Content[4].Title.ResKey !== 'SidebarTransactionAmountTitle.Text') {
-                        console.error("Something is wrong with details data structure, please check (SidebarTransactionAmountTitle.Text).\n\n Transaction data: ");
-                        console.error(data);
-                        console.error(upd);
-                        return;
-                    }
 
-                    data.transaction_amount = parseFloat(upd.Details[1].Content[4].Values[0].ResParams.Amount.replace(',', ''));
-                    data.transaction_currency = upd.Details[1].Content[4].Values[0].ResParams.Currency;
-                    data.transaction_fee = parseFloat(upd.Details[0].Content[1].Values[0].ResParams.Amount.replace(',', ''));
+                        data.transaction_amount = parseFloat(upd.Details[0].Content[0].Values[0].ResParams.Amount.replace(',', ''));
+                        data.transaction_currency = upd.Details[0].Content[0].Values[0].ResParams.Currency;
+                        data.transaction_fee = parseFloat(upd.Details[0].Content[1].Values[0].ResParams.Amount.replace(',', ''));
+                    }
+                    else {
+                        data.transaction_amount = parseFloat(upd.Details[1].Content[4].Values[0].ResParams.Amount.replace(',', ''));
+                        data.transaction_currency = upd.Details[1].Content[4].Values[0].ResParams.Currency;
+                        data.transaction_fee = parseFloat(upd.Details[0].Content[1].Values[0].ResParams.Amount.replace(',', ''));
+                    }
                 }
                 else if (data.transfer_type === 'bank') {
                     if (!upd.Details[1] ||

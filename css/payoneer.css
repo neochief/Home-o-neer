@@ -11,8 +11,9 @@
     min-width: 996px !important;
 }
 
-#LeftContent {
-    width: calc(100% - 255px) !important;
+.MainContainer #LeftContent {
+    max-width: calc(100% - 36px) !important;
+    width: calc(100% - 36px) !important;
 }
 
 td.TransactionDescriptionColumn {
