@@ -2,11 +2,26 @@ $ = jQuery;
 
 // 3 Jan 2018 -> 2016-01-15 09:56:00
 function amDateToISO2(amDate) {
-    var date = amDate.split(" ");
-    date = pad(date[2], 4) + "-" + pad(date[2], 2) + "-" + pad(date[0], 2);
-    var time = date.length > 3 ? temp[3] : '00:00:00';
+    var temp = amDate.split(" ");
+
+    var months3 = ["jan",
+        "feb",
+        "mar",
+        "apr",
+        "may",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec"];
+    var month = months3.indexOf(temp[1].toLowerCase()) + 1;
+
+    var date = pad(temp[2], 4) + "-" + pad(month, 2) + "-" + pad(temp[0], 2);
+    var time = temp.length > 3 ? temp[3] : '00:00:00';
     time = time.split(':');
-    if (time.length == 2) {
+    if (time.length === 2) {
         time.push('00');
     }
     for (var i = 0; i < time.length; i++) {
@@ -442,7 +457,7 @@ var app = {
         return false;
     },
     loadPayoneerTransactionDetails: function (data, callback) {
-        $.get('https://activityfacade.payoneer.com/api/activity/getItemDetails?activityItemId=' + data.id + '&activityType=' + data.typeId, function (upd) {
+        Messenger.send('Get', {'url': 'https://activityfacade.payoneer.com/api/activity/getItemDetails?activityItemId=' + data.id + '&activityType=' + data.typeId}, function (upd) {
             callback(data, upd);
         });
     },

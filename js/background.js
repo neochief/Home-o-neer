@@ -117,6 +117,13 @@ var App = {
     },
     ArrivedToTransactions: function(data, sender, sendResponse){
         localStorage.removeItem('payoneer_do_go_to_transactions');
+    },
+    Get: function(data, sender, sendResponse){
+        $.get(data.url).done(function (upd) {
+            sendResponse(upd);
+        });
+
+        return true;
     }
 };
 
