@@ -55,7 +55,6 @@
         "js/lib/moments.js",
         "js/messenger.js",
         "js/utils.js",
-        "js/tr.js",
         "js/homemoney-utils.js",
         "js/payoneer-transactions.js"
       ]

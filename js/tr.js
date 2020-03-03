@@ -10,17 +10,17 @@ function addXMLRequestCallback(callback) {
         oldSend = XMLHttpRequest.prototype.send;
         // override the native send()
         XMLHttpRequest.prototype.send = function () {
-            this.addEventListener("loadend", function() {
+            this.onload = function() {
                 for (i = 0; i < XMLHttpRequest.callbacks.length; i++) {
                     XMLHttpRequest.callbacks[i](this);
                 }
-            }.bind(this));
+            }.bind(this);
             oldSend.apply(this, arguments);
         }
     }
 }
 
-setTimeout(function () {
+//setTimeout(function () {
     addXMLRequestCallback(function (xhr) {
         if (xhr.responseURL && /api\/activity\/getMainTransactions/.test(xhr.responseURL)) {
             document.dispatchEvent(new CustomEvent('Home-o-neer:getMainTransactions', {
@@ -34,4 +34,4 @@ setTimeout(function () {
             }));
         }
     });
-}, 0);
+//}, 0);
