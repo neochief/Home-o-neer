@@ -119,9 +119,21 @@ var App = {
         localStorage.removeItem('payoneer_do_go_to_transactions');
     },
     Get: function(data, sender, sendResponse){
-        $.get(data.url).done(function (upd) {
-            sendResponse(upd);
-        });
+        var options = {
+            url: data.url,
+            dataFormat: 'json',
+            success: function (upd) {
+              sendResponse(upd);
+            },
+        };
+        
+        if (data.authorization != undefined) {
+            options.beforeSend = function(request) {
+                request.setRequestHeader("Authorization", data.authorization);
+            }
+        }
+
+        $.ajax(options);
 
         return true;
     }

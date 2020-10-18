@@ -92,6 +92,7 @@ var app = {
     account_select_count: [],
     ready: false,
     lastPayoneerData: null,
+    payoneerAuthorizationHeader: null,
     start: function () {
         if (!document.getElementsByClassName('myaccount').length) {
             return;
@@ -120,6 +121,10 @@ var app = {
         s.onload = function () {
             s.remove();
         };
+
+        document.addEventListener('Home-o-neer:authorization', function (e) {
+            this.payoneerAuthorizationHeader = e.detail;
+        }.bind(this));
 
         document.addEventListener('Home-o-neer:getMainTransactions', function (e) {
             this.lastPayoneerData = {};
@@ -457,7 +462,10 @@ var app = {
         return false;
     },
     loadPayoneerTransactionDetails: function (data, callback) {
-        Messenger.send('Get', {'url': 'https://activityfacade.payoneer.com/api/activity/getItemDetails?activityItemId=' + data.id + '&activityType=' + data.typeId}, function (upd) {
+        Messenger.send('Get', {
+            url: 'https://myaccount.payoneer.com/gw-activity/api/activity/getItemDetails?activityItemId=' + encodeURIComponent(data.id) + '&activityType=' + data.typeId,
+            authorization: this.payoneerAuthorizationHeader,
+        }, function (upd) {
             callback(data, upd);
         });
     },

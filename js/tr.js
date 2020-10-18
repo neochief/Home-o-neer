@@ -1,5 +1,7 @@
 function addXMLRequestCallback(callback) {
-    var oldSend, oldOnload, i;
+    var oldSend, oldOnload, i, oldSetRequestHeader;
+    var authorization;
+
     if (XMLHttpRequest.callbacks) {
         // we've already overridden send() so just add the callback
         XMLHttpRequest.callbacks.push(callback);
@@ -15,8 +17,47 @@ function addXMLRequestCallback(callback) {
                     XMLHttpRequest.callbacks[i](this);
                 }
             }.bind(this);
+
+            if (authorization && this.headers.Authorization === undefined) {
+                this.setRequestHeader('Authorization', authorization);
+            }
+
             oldSend.apply(this, arguments);
         }
+
+        // Reasign the existing setRequestHeader function to 
+        // something else on the XMLHtttpRequest class
+        oldSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader; 
+
+        // Override the existing setRequestHeader function so that it stores the headers
+        XMLHttpRequest.prototype.setRequestHeader = function() {
+            // Call the wrappedSetRequestHeader function first 
+            // so we get exceptions if we are in an erronous state etc.
+            oldSetRequestHeader.apply(this, arguments);
+
+            // Create a headers map if it does not exist
+            if(!this.headers) {
+                this.headers = {};
+            }
+
+            var header = arguments[0];
+            var value = arguments[1];
+
+            if (header == 'Authorization') {
+                authorization = value;
+                document.dispatchEvent(new CustomEvent('Home-o-neer:authorization', {
+                    detail: value
+                }));
+            }
+
+            // Create a list for the header that if it does not exist
+            if(!this.headers[header]) {
+                this.headers[header] = [];
+            }
+
+            // Add the value to the header
+            this.headers[header].push(value);
+        };
     }
 }
 
