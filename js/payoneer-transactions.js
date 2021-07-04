@@ -132,6 +132,12 @@ var app = {
                 this.lastPayoneerData[e.detail.Transactions[i].ActivityId] = e.detail.Transactions[i];
             }
             this.initIfReady();
+
+            $(".load-more__btn").click(function(){
+                setInterval(function(){
+                    this.initIfReady();
+                }.bind(this), 1000);
+            }.bind(this));
         }.bind(this));
 
         document.addEventListener('Home-o-neer:getMoreTransactions', function (e) {
@@ -139,12 +145,6 @@ var app = {
                 this.lastPayoneerData[e.detail.Transactions[i].ActivityId] = e.detail.Transactions[i];
             }
             this.initIfReady();
-        }.bind(this));
-        
-        $("body").on("click", ".load-more__btn", function(){
-            setInterval(function(){
-                this.initIfReady();
-            }.bind(this), 1000);
         }.bind(this));
     },
     getTokenOrWait: function (success, failure, just_checking) {
