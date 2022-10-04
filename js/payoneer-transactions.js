@@ -94,9 +94,6 @@ var app = {
     lastPayoneerData: null,
     payoneerAuthorizationHeader: null,
     start: function () {
-        if (!document.getElementsByClassName('myaccount').length) {
-            return;
-        }
         Messenger.send('ArrivedToTransactions');
 
         var first = true;

@@ -44,7 +44,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://myaccount.payoneer.com/MainPage/Widget.aspx?w=Activity"
+        "https://myaccount.payoneer.com/ma/accountactivity/transactions"
       ],
       "css": [
         "css/font-awesome.css",
@@ -61,7 +61,7 @@
     },
     {
       "matches": [
-        "https://myaccount.payoneer.com/MainPage/PromoPage.aspx"
+        "https://myaccount.payoneer.com/ma/"
       ],
       "js": [
         "js/messenger.js",
