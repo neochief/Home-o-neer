@@ -256,7 +256,7 @@ var app = {
 
         var date = moment($('.column-date', row).text()).format('YYYY-MM-DD');
         var comment = $('.activity-description strong', row).text();
-        var amount = $('.column-amount strong', row).text().replace(/ USD$/, '');
+        var amount = $('.column-amount strong', row).text().replace(/ USD$/, '').replace(/,/, '');
 
         var ind;
         var found = false;
@@ -323,13 +323,13 @@ var app = {
             // Money that came from partners.
             case 6:
                 data.type = 'credit';
-                // Immediate load fee is $5 (not included into visible total).
+                // Immediate load fee is $3 (not included into visible total).
                 //
                 // We multiply it since the fee is deducted from total when 
                 // transaction is saved.
-                data.total += 5 * 2;
-                data.transaction_amount += 5 * 2;
-                data.transaction_fee = 5;
+                data.total += 3 * 2;
+                data.transaction_amount += 3 * 2;
+                data.transaction_fee = 3;
                 break;
             // Transfer to other Payoneer account.
             case 14:
