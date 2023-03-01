@@ -255,8 +255,8 @@ var app = {
         row.className += ' homemoney-processed';
 
         var date = moment($('.column-date', row).text()).format('YYYY-MM-DD');
-        var comment = $('.activity-description strong', row).text();
-        var amount = $('.column-amount strong', row).text().replace(/ USD$/, '').replace(/,/, '');
+        var comment = $('.activity-description strong', row).text().replace(/^Card charge \((.*?)\)$/, '$1').replace(/^Payment from (.*?)$/, '$1');
+        var amount = $('.column-amount', row).text().replace(/ USD$/, '').replace(/,/, '');
 
         var ind;
         var found = false;
@@ -265,9 +265,16 @@ var app = {
                 return;
             }
             var tr = this.lastPayoneerData[ind];
+            trDescription = '';
+            if (tr.Description?.ResParams?.Merchant_name) {
+                trDescription = tr.Description.ResParams.Merchant_name;
+            } else if (tr.Description?.ResParams?.Payment_from) {
+                trDescription = tr.Description.ResParams.Payment_from;
+            }
+
             if (tr.homemoney === undefined &&
                 date === moment(tr.Date).format('YYYY-MM-DD') &&
-                (comment === tr.Description.Value || tr.TypeId == 20) &&
+                (comment === trDescription || tr.TypeId == 20) &&
                 amount === tr.Amount.ResParams.Amount) {
 
                 tr.homemoney = true;
@@ -284,7 +291,7 @@ var app = {
         var data = {};
         data.id = tr.ActivityId;
         data.date = moment(tr.Date).format('YYYY-MM-DD hh:mm:ss');
-        data.description = tr.Description.Value || comment;
+        data.description = comment;
         data.isNegative = /^\-/.test(amount);
         data.total = parseFloat(amount.replace(',', '').replace(/^\-/, ''));
         data.transaction_amount = data.total;
