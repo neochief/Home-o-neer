@@ -260,6 +260,7 @@ var app = {
 
         var ind;
         var found = false;
+        let foundIfThereAreNoBetterCandidates = null;
         for (ind in this.lastPayoneerData) {
             if (!this.lastPayoneerData.hasOwnProperty(ind)) {
                 return;
@@ -272,20 +273,29 @@ var app = {
                 trDescription = tr.Description.ResParams.Payment_from;
             }
 
-            if (tr.homemoney === undefined &&
-                date === moment(tr.Date).format('YYYY-MM-DD') &&
-                (comment === trDescription || tr.TypeId == 20) &&
-                amount === tr.Amount.ResParams.Amount) {
+            let dataMatches = tr.homemoney === undefined && (comment === trDescription || tr.TypeId == 20) && amount === tr.Amount.ResParams.Amount;
+
+            if (dataMatches && date === moment(tr.Date).format('YYYY-MM-DD')) {
 
                 tr.homemoney = true;
                 found = true;
 
                 break;
             }
+            // There are situations where in teh UI, the record may contain the date of the next day, but the date of the transaction is the current day (timezone difference most likely).
+            else if (dataMatches && date === moment(tr.Date).add(1, 'days').format('YYYY-MM-DD')) {
+                foundIfThereAreNoBetterCandidates = tr;
+            }
         }
 
         if (!found) {
-            return;
+            if (foundIfThereAreNoBetterCandidates) {
+                tr = foundIfThereAreNoBetterCandidates;
+                tr.homemoney = true;
+            }
+            else {
+                return;
+            }
         }
 
         var data = {};
